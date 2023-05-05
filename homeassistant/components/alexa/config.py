@@ -1,4 +1,6 @@
 """Config helpers for Alexa."""
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 import asyncio
 import logging
@@ -17,14 +19,14 @@ _LOGGER = logging.getLogger(__name__)
 class AbstractConfig(ABC):
     """Hold the configuration for Alexa."""
 
+    _store: AlexaConfigStore
     _unsub_proactive_report: asyncio.Task[CALLBACK_TYPE] | None = None
 
     def __init__(self, hass: HomeAssistant) -> None:
         """Initialize abstract config."""
         self.hass = hass
-        self._store = None
 
-    async def async_initialize(self):
+    async def async_initialize(self) -> None:
         """Perform async initialization of config."""
         self._store = AlexaConfigStore(self.hass)
         await self._store.async_load()
@@ -64,7 +66,7 @@ class AbstractConfig(ABC):
     def user_identifier(self):
         """Return an identifier for the user that represents this config."""
 
-    async def async_enable_proactive_mode(self):
+    async def async_enable_proactive_mode(self) -> None:
         """Enable proactive mode."""
         _LOGGER.debug("Enable proactive mode")
         if self._unsub_proactive_report is None:
@@ -77,10 +79,11 @@ class AbstractConfig(ABC):
             self._unsub_proactive_report = None
             raise
 
-    async def async_disable_proactive_mode(self):
+    async def async_disable_proactive_mode(self) -> None:
         """Disable proactive mode."""
         _LOGGER.debug("Disable proactive mode")
-        if unsub_func := await self._unsub_proactive_report:
+        if self._unsub_proactive_report:
+            unsub_func = await self._unsub_proactive_report
             unsub_func()
         self._unsub_proactive_report = None
 
@@ -107,7 +110,7 @@ class AbstractConfig(ABC):
         """Return authorization status."""
         return self._store.authorized
 
-    async def set_authorized(self, authorized):
+    async def set_authorized(self, authorized) -> None:
         """Set authorization status.
 
         - Set when an incoming message is received from Alexa.
