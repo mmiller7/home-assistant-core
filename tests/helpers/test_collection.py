@@ -82,7 +82,7 @@ class MockObservableCollection(collection.ObservableCollection):
         return entity_class.from_storage(config)
 
 
-class MockStorageCollection(collection.StorageCollection):
+class MockStorageCollection(collection.DictStorageCollection):
     """Mock storage collection."""
 
     async def _process_create_data(self, data: dict) -> dict:
@@ -96,9 +96,9 @@ class MockStorageCollection(collection.StorageCollection):
         """Suggest an ID based on the config."""
         return info["name"]
 
-    async def _update_data(self, data: dict, update_data: dict) -> dict:
+    async def _update_data(self, item: dict, update_data: dict) -> dict:
         """Return a new updated data object."""
-        return {**data, **update_data}
+        return {**item, **update_data}
 
 
 def test_id_manager() -> None:
@@ -436,7 +436,7 @@ async def test_storage_collection_websocket(
     store = storage.Store(hass, 1, "test-data")
     coll = MockStorageCollection(store)
     changes = track_changes(coll)
-    collection.StorageCollectionWebsocket(
+    collection.DictStorageCollectionWebsocket(
         coll,
         "test_item/collection",
         "test_item",
